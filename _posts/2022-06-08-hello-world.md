@@ -1,9 +1,11 @@
 ---
 title: "Hello World !"
-date: "2022-06-08 16:37:30"
-tags: 
+date: "2022-06-08"
+categories:
   - "other"
   - "log"
+tags: 
+  - "test"
 comments: false
 author:
   name: kanren
@@ -24,3 +26,4 @@ author:
 ## 引用
 
 * [狗屁不通文章生成器](https://suulnnka.github.io/BullshitGenerator/index.html)
+
