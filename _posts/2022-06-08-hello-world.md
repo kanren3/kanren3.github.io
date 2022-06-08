@@ -7,7 +7,7 @@ categories:
 tags: 
   - "test"
 comments: false
-coverImage: "summer.jpg"
+coverImage: "../../assets/images/summer.jpg"
 author:
   name: kanren
 ---
