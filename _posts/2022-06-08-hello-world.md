@@ -2,12 +2,10 @@
 title: "Hello World"
 date: "2022-06-08"
 categories:
-  - "other"
-  - "log"
+  - "Other"
 tags: 
-  - "test"
+  - "Test"
 comments: false
-coverImage: "../../assets/images/summer.jpg"
 author:
   name: kanren
 ---
