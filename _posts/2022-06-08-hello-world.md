@@ -1,20 +1,12 @@
 ---
 title: "Hello World !"
-date: "2017-03-19"
-categories: 
-  - "social"
+date: "2022-06-08"
 tags: 
-  - "begining"
-  - "helloworld"
-  - "start"
-coverImage: "../../assets/images/hello-world.jpg"
+  - "other"
 comments: true
 author:
-  name: Mohammad Sina Karvandi
-  link: https://twitter.com/Intel80x86
+  name: kanren
 ---
-
-![](../../assets/images/hello-world.jpg)
 
 ### **This is the first post of our blog !**
 
