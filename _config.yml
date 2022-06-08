@@ -23,10 +23,10 @@ timezone:
 
 title: Island                          # the main title
 
-#tagline: ''# it will display as the sub-title
+tagline: El Psy Kongroo   # it will display as the sub-title
 
 description: >-                        # used by seo meta and the atom feed
-  「编程」「安全」「动漫」「音乐」「摄影」「游戏」
+  El Psy Kongroo
 
 # fill in the protocol & hostname for your site, e.g., 'https://username.github.io'
 url: ''
@@ -123,7 +123,7 @@ kramdown:
   syntax_highlighter: rouge
   syntax_highlighter_opts:   # Rouge Options › https://github.com/jneen/rouge#full-options
     css_class: highlight
-    # default_lang: console
+      default_lang: c
     span:
       line_numbers: false
     block:

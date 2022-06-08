@@ -1,9 +1,12 @@
 ---
 title: "Hello World !"
+date: "2017-03-19"
+categories: 
+  - "social"
 tags: 
-  - "Kernel"
+  - "begining"
+  - "helloworld"
+  - "start"
 ---
 
-## Hello World
-
-* 测试一下Mardown
+### **This is the first post of our blog !**
