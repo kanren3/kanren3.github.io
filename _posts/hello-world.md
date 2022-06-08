@@ -1,7 +1,5 @@
 ---
 title: "Hello World !"
-categories: 
-  - "其他"
 tags: 
   - "Kernel"
 ---
