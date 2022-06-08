@@ -7,6 +7,7 @@ categories:
 tags: 
   - "test"
 comments: false
+coverImage: "summer.jpg"
 author:
   name: kanren
 ---
