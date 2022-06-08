@@ -21,9 +21,9 @@ timezone:
 # jekyll-seo-tag settings › https://github.com/jekyll/jekyll-seo-tag/blob/master/docs/usage.md
 # ↓ --------------------------
 
-title: Island                          # the main title
+title: 「编程」                          # the main title
 
-tagline: 大道五十,天衍四九,人遁其一   # it will display as the sub-title
+tagline: 「编程」「安全」「动漫」「音乐」「摄影」「游戏」   # it will display as the sub-title
 
 description: >-                        # used by seo meta and the atom feed
   「编程」「安全」「动漫」「音乐」「摄影」「游戏」
@@ -35,7 +35,7 @@ github:
   username: kanren3             # change to your github username
 
 twitter:
-  username: twitter_username            # change to your twitter username
+  username:             # change to your twitter username
 
 social:
   # Change to your full name.
@@ -73,7 +73,7 @@ google_analytics:
 #     light  - Use the light color scheme
 #     dark   - Use the dark color scheme
 #
-theme_mode:   # [light|dark]
+theme_mode: dark  # [light|dark]
 
 # The CDN endpoint for images.
 # Notice that once it is assigned, the CDN url
