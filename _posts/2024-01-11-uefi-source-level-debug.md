@@ -1,5 +1,5 @@
 ---
-title: Windows上的UEFI源码级调试
+title: 浅谈 | Windows下进行UEFI源码级调试
 date: 2024-01-11
 categories:
   - "UEFI"
