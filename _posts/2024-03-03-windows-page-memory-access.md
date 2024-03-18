@@ -4,8 +4,7 @@ date: 2024-03-03
 categories:
   - "Windows"
 tags:
-  - "Kernel"
-  - "Windows"
+  - "Windows Kernel"
 comments: true
 image:
   path: /assets/img/2024-03-03-windows-page-memory-access/cover.jpg
