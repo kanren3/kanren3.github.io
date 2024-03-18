@@ -31,8 +31,6 @@ image:
 * 如果为 `AllowUserWritesToExecutableMemory` 则直接返回 `STATUS_EXECUTABLE_MEMORY_WRITE` 这个错误代码。
 * 如果为 `AllowKernelWritesToExecutableMemory` 则去调用MiForceCrashForInvalidAccess函数。
 
-MiForceCrashForInvalidAccess内部会判断 `FatalAccessTerminationRequested` 如果为置位状态，则为进程创建Dump，并且调用ZwCreateThreadEx让进程直接崩溃。
-
 ## MiForceCrashForInvalidAccess
 
 * 首先判断EPROCESS.Flags2的 `FatalAccessTerminationRequested` 是否置位。
