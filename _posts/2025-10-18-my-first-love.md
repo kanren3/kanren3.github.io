@@ -1,5 +1,5 @@
 ---
-title: 初恋 | 失败与遗憾
+title: 初恋 | 熟悉的陌生人
 date: 2025-10-18
 categories:
   - "Time"
