@@ -1,5 +1,5 @@
 ---
-title: 技巧 | Windows可执行内存的写入防护
+title: 技巧 | Windows 可执行内存的写入防护
 date: 2024-03-18
 categories:
   - "Windows Internals"

@@ -1,5 +1,5 @@
 ---
-title: 浅谈 | Windows下进行UEFI源码级调试
+title: 浅谈 | Windows 下进行 UEFI 源码级调试
 date: 2024-01-11
 categories:
   - "UEFI"
@@ -65,7 +65,7 @@ GDB 的版本要求 10.1 以上，原因是新版 DWARF 符号，在 10.1 以下
 
 这里的配置就不详细描述了，具体细节可以去看[SampleSourceLevelDebugPkg](https://github.com/kanren3/SampleSourceLevelDebugPkg)仓库。
 
-![](/assets/img/2024-01-11-uefi-source-level-debug/vscode-source-level-debug-example.png)
+![](../assets/img/2024-01-11-uefi-source-level-debug/vscode-source-level-debug-example.png)
 
 ## 结语
 

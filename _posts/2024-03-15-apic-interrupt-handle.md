@@ -1,5 +1,5 @@
 ---
-title: 浅谈 | APIC的中断处理
+title: 浅谈 | APIC 的中断处理
 date: 2024-03-15
 categories:
   - "Intel"

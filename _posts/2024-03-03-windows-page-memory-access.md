@@ -1,5 +1,5 @@
 ---
-title: 详解 | Windows分页内存访问
+title: 详解 | Windows 分页内存访问
 date: 2024-03-03
 categories:
   - "Windows Internals"
