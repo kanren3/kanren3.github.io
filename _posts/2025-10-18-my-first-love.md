@@ -7,7 +7,7 @@ tags:
   - "Time"
 comments: true
 image:
-  path: /assets/img/2025-10-18-my-first-love/cover.jpg
+  path: ../assets/img/2025-10-18-my-first-love/cover.jpg
 ---
 
 我们的相识是在一年前。那时我24岁，工作三年了；她18岁，刚上大学。当时，我偶然添加了一个唱见UP主的粉丝群——这位UP主我已经关注了很多年，直到去年才加群。现在想想，如果我早些加群，或许结局会不一样吧。

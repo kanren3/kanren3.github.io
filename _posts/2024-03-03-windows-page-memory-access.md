@@ -7,7 +7,7 @@ tags:
   - "Windows Internals"
 comments: true
 image:
-  path: /assets/img/2024-03-03-windows-page-memory-access/cover.jpg
+  path: ../assets/img/2024-03-03-windows-page-memory-access/cover.jpg
 ---
 
 ## 引言
@@ -47,49 +47,49 @@ image:
 
 这个问题的答案很简单，因为系统做过特殊的处理，下面我们直接来看Windows 2003的源码:
 
-![](/assets/img/2024-03-03-windows-page-memory-access/1.png)
+![](../assets/img/2024-03-03-windows-page-memory-access/1.png)
 
 首先系统会调用IoPageRead去磁盘上读取分页内存。
 
 ------
 
-![](/assets/img/2024-03-03-windows-page-memory-access/2.png)
+![](../assets/img/2024-03-03-windows-page-memory-access/2.png)
 
 这里我们看到IoPageRead是IopPageReadInternal的包装。
 
 ------
 
-![](/assets/img/2024-03-03-windows-page-memory-access/7.png)
+![](../assets/img/2024-03-03-windows-page-memory-access/7.png)
 
 IopPageReadInternal的最后一个参数Async，表示PageRead的过程是异步还是同步，而IoPageRead传入的是FALSE，所以IoPageRead是同步的。
 
 ------
 
-![](/assets/img/2024-03-03-windows-page-memory-access/3.png)
+![](../assets/img/2024-03-03-windows-page-memory-access/3.png)
 
 既然有同步，自然也有异步，IoAsynchronousPageRead，两者的区别后面会说。
 
 ------
 
-![](/assets/img/2024-03-03-windows-page-memory-access/4.png)
+![](../assets/img/2024-03-03-windows-page-memory-access/4.png)
 
 IopPageReadInternal确实在做I/O操作，根据Async给不同的Flags，这个Flags在I/O Complete的时候会用到。
 
 ------
 
-![](/assets/img/2024-03-03-windows-page-memory-access/5.png)
+![](../assets/img/2024-03-03-windows-page-memory-access/5.png)
 
 在IopfCompleteRequest里，找到了我们想要的东西，但是先前传入的Flags无论是同步还是异步，最后所执行的流程是完全一样的，都会去调KeSetEvent做同步处理，等于说IoAsynchronousPageRead和IoPageRead两个函数是没有任何区别的，IoAsynchronousPageRead并不是真的异步操作。
 
 ------
 
-![](/assets/img/2024-03-03-windows-page-memory-access/8.png)
+![](../assets/img/2024-03-03-windows-page-memory-access/8.png)
 
 在MiPfExecuteReadList中用到了IoAsynchronousPageRead，但是不够，我们还需要在往上找。
 
 ------
 
-![](/assets/img/2024-03-03-windows-page-memory-access/9.png)
+![](../assets/img/2024-03-03-windows-page-memory-access/9.png)
 
 再往上走一层，我们便可以知道为什么叫 **Asynchronous** ，因为它是一个预取列表有多个I/O操作，系统会同时等待全部I/O操作完成，这样性能更好，举个例子：
 
@@ -99,7 +99,7 @@ IopPageReadInternal确实在做I/O操作，根据Async给不同的Flags，这个
 
 ------
 
-![](/assets/img/2024-03-03-windows-page-memory-access/6.png)
+![](../assets/img/2024-03-03-windows-page-memory-access/6.png)
 
 既然存在IoAsynchronousPageRead，那也存在IoAsynchronousPageWrite，但是和IoAsynchronousPageRead不同的是，IoAsynchronousPageWrite是一个真正的异步操作，使用Special Kernel APC异步调用IopCompletePageWrite来完成I/O操作。
 

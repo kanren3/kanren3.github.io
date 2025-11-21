@@ -9,7 +9,7 @@ tags:
   - "EDK2"
 comments: true
 image:
-  path: /assets/img/2024-01-11-uefi-source-level-debug/cumulonimbus.jpg
+  path: ../assets/img/2024-01-11-uefi-source-level-debug/cumulonimbus.jpg
 ---
 
 众所周知，UEFI 的调试其实是极其麻烦的事情（实际上开发过程中使用的 EDK2 工具链用起来也非常蛋疼，这里就不细说了），本篇将介绍 Windows 下使用 Vmware 进行源码级调试的方法，且其他平台下也可以同样适用。
@@ -63,7 +63,7 @@ GDB 的版本要求 10.1 以上，原因是新版 DWARF 符号，在 10.1 以下
 
 ## Visual Studio Code
 
-这里的配置就不详细描述了，具体细节可以去看[SampleSourceLevelDebugPkg](https://github.com/kanren3/SampleSourceLevelDebugPkg)仓库。
+这里的配置就不详细描述了，具体细节可以去看 [SampleSourceLevelDebugPkg](https://github.com/kanren3/SampleSourceLevelDebugPkg) 仓库。
 
 ![](../assets/img/2024-01-11-uefi-source-level-debug/vscode-source-level-debug-example.png)
 

@@ -10,7 +10,7 @@ tags:
   - "APIC"
 comments: true
 image:
-  path: /assets/img/2024-03-15-apic-interrupt-handle/cover.jpg
+  path: ../assets/img/2024-03-15-apic-interrupt-handle/cover.jpg
 ---
 
 <!-- markdownlint-capture -->
@@ -45,7 +45,7 @@ image:
 
 在Windows的内核中，存在两个特殊的中断，APC和DPC，它们由Windows自己定义为系统软中断，通过IDA逆向可以看到对于它们对于中断的处理方式。
 
-![](/assets/img/2024-03-15-apic-interrupt-handle/1.png)
+![](../assets/img/2024-03-15-apic-interrupt-handle/1.png)
 
 * 将写入APC_LEVEL写入到TPR，此时保证TPR与最高优先级的ISR是相等的。
 

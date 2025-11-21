@@ -7,7 +7,7 @@ tags:
   - "Windows Internals"
 comments: true
 image:
-  path: /assets/img/2025-11-21-vbs-disable-failure-reason/cover.jpg
+  path: ../assets/img/2025-11-21-vbs-disable-failure-reason/cover.jpg
 ---
 
 ## 引言
@@ -18,31 +18,31 @@ image:
 
 在探寻为何会禁用失败之前，我们需要先了解禁用的原理，也就是从 `bcdedit /set hypervisorlaunchtype off` 下手，所以我们首先需要使用 **IDA** 打开 低版本 Windows 中的 `bcdedit.exe`，搜索到关键字符串 `hypervisorlaunchtype`，然后查看引用：
 
-![](/assets/img/2025-11-21-vbs-disable-failure-reason/1.png)
+![](../assets/img/2025-11-21-vbs-disable-failure-reason/1.png)
 
 ------
 
 然后我们查看交叉引用，发现处于 `BcdElements` 范围中，在添加结构体并重新解析以后，得到了以下数据：
 
-![](/assets/img/2025-11-21-vbs-disable-failure-reason/2.png)
+![](../assets/img/2025-11-21-vbs-disable-failure-reason/2.png)
 
 ------
 
 其中 `250000F0h` 代表的就是这个引导项数据的类型标识符，现在我们需要打开 `winload.efi`，去通过搜索立即数的方式找到何时使用到了这个数据：
 
-![](/assets/img/2025-11-21-vbs-disable-failure-reason/3.png)
+![](../assets/img/2025-11-21-vbs-disable-failure-reason/3.png)
 
 ------
 
 通过分析函数名和函数的使用情况，最后确定是 `OslGetHypervisorLaunchType` 是决定是否加载 **MSHV** 的关键因素：
 
-![](/assets/img/2025-11-21-vbs-disable-failure-reason/4.png)
+![](../assets/img/2025-11-21-vbs-disable-failure-reason/4.png)
 
 ------
 
 如下所示，当 `OslGetHypervisorLaunchType` 调用成功，返回的 `HypervisorLaunchType` 为 1 的时候，便会去调用 `HvlpLoadHypervisor`：
 
-![](/assets/img/2025-11-21-vbs-disable-failure-reason/5.png)
+![](../assets/img/2025-11-21-vbs-disable-failure-reason/5.png)
 
 ------
 
@@ -52,31 +52,31 @@ image:
 
 那么是什么原因导致的在新版本中 `bcdedit /set hypervisorlaunchtype off` 不生效呢？我们打开新版本的 `winload.efi`，然后转到 `OslGetHypervisorLaunchType` 函数：
 
-![](/assets/img/2025-11-21-vbs-disable-failure-reason/7.png)
+![](../assets/img/2025-11-21-vbs-disable-failure-reason/7.png)
 
 ------
 
 如图所示，在 `BlVsmpSystemPolicy[bit 48]` 处于置位状态下时，将无视 `hypervisorlaunchtype` 的值，强制加载 **MSHV**，`BlVsmpSystemPolicy` 是从 `EFI Variable` 同步而来，名为 `VbsPolicy`，是系统默认的引导策略，无法修改：
 
-![](/assets/img/2025-11-21-vbs-disable-failure-reason/8.png)
+![](../assets/img/2025-11-21-vbs-disable-failure-reason/8.png)
 
 ------
 
 但在微软提供的文档里，有一些方法可以对某些 `EFI Variable` 进行控制，例如：
 
-![](/assets/img/2025-11-21-vbs-disable-failure-reason/9.png)
+![](../assets/img/2025-11-21-vbs-disable-failure-reason/9.png)
 
 ------
 
 如图所示，将 `SecConfig.efi` 作为引导项，即可通过一些选项来控制某些 `EFI Variable`，我们可以打开它，来查看支持哪些选项：
 
-![](/assets/img/2025-11-21-vbs-disable-failure-reason/10.png)
+![](../assets/img/2025-11-21-vbs-disable-failure-reason/10.png)
 
 ------
 
 表中存放的是选项名字，以及它们所对应的 `Flags`，后续会根据 `Flags` 去进行功能的调度：
 
-![](/assets/img/2025-11-21-vbs-disable-failure-reason/11.png)
+![](../assets/img/2025-11-21-vbs-disable-failure-reason/11.png)
 
 ------
 
