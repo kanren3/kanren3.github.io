@@ -12,7 +12,7 @@ image:
 
 ## 引言
 
-在某些追求极致游戏性能的用户眼里，微软的 **Virtualization-based Security (VBS)** 是一个讨厌的东西，它依赖于 **Microsoft Hypervisor (MSHV)**，所以以前禁用它的方式就是修改引导配置 `bcdedit /set hypervisorlaunchtype off`，但在某次更新以后，大家发现这个方法无效了。
+在某些追求极致游戏性能的用户眼里，微软的 **Virtualization-based Security (VBS)** 是一个讨厌的东西，它依赖于 **Microsoft Hypervisor (MSHV)**，以前禁用它的方式就是修改引导配置 `bcdedit /set hypervisorlaunchtype off`，但在某次更新以后，大家发现这个方法无效了。
 
 ## 原理
 
