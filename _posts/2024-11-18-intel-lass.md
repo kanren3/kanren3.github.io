@@ -8,6 +8,7 @@ tags:
 comments: true
 image:
   path: ../assets/img/2024-11-18-intel-lass/cover.jpg
+  lqip: ../assets/img/2024-11-18-intel-lass/cover-lqip.jpg
 ---
 
 <!-- markdownlint-capture -->

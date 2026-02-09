@@ -8,6 +8,7 @@ tags:
 comments: true
 image:
   path: ../assets/img/2024-03-18-executable-memory-write/cover.jpg
+  lqip: ../assets/img/2024-03-18-executable-memory-write/cover-lqip.jpg
 ---
 
 在内核中免不了要调用ZwAllocateVirtualMemory为进程申请内存，申请的内存属性一般会为 `PAGE_READWRITE` 或 `PAGE_EXECUTE_READWRITE`，而在二月份的某一天里，我的群友发现对某个游戏申请的 `PAGE_EXECUTE_READWRITE` 属性内存，是无法写入的，一旦写入会导致进程直接崩溃，无论是内核模式写入还是用户模式写入。

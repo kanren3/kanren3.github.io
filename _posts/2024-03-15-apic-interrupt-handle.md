@@ -11,6 +11,7 @@ tags:
 comments: true
 image:
   path: ../assets/img/2024-03-15-apic-interrupt-handle/cover.jpg
+  lqip: ../assets/img/2024-03-15-apic-interrupt-handle/cover-lqip.jpg
 ---
 
 <!-- markdownlint-capture -->

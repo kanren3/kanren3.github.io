@@ -8,6 +8,7 @@ tags:
 comments: true
 image:
   path: ../assets/img/2024-03-03-windows-page-memory-access/cover.jpg
+  lqip: ../assets/img/2024-03-03-windows-page-memory-access/cover-lqip.jpg
 ---
 
 ## 引言

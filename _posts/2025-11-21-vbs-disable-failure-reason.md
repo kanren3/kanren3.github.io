@@ -8,6 +8,7 @@ tags:
 comments: true
 image:
   path: ../assets/img/2025-11-21-vbs-disable-failure-reason/cover.jpg
+  lqip: ../assets/img/2025-11-21-vbs-disable-failure-reason/cover-lqip.jpg
 ---
 
 ## 引言
