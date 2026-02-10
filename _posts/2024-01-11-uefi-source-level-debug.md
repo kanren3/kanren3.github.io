@@ -25,7 +25,7 @@ image:
 
 ## 基本常识
 
-- UEFI 程序的文件格式是 PE/COFF，这是由微软规范的一种文件格式，同时所对应的调试信息是"Program Database"，也就是我们常见的 PDB 文件。
+- UEFI 程序的文件格式是 PE/COFF，这是由微软规范的一种文件格式，同时所对应的调试信息是 `Program Database`，也就是我们常见的 PDB 文件。
 - VMware Workstation Pro 本身留有 gdbserver 协议调试接口，客户端可以通过 gdb 或 lldb 协议来调试。
 - gdb 不支持载入 PDB 格式的调试信息，它仅支持 DWARF 格式的调试信息。
 - lldb 支持 PDB 格式的调试信息和 DWARF 格式的调试信息，但是 lldb 的官方文档表示 PDB 格式的调试信息并未完全支持。
@@ -49,7 +49,7 @@ build -p ${workspaceFolder}/SampleSourceLevelDebugPkg.dsc -t CLANGDWARF -a X64 -
 build -p ${workspaceFolder}/SampleSourceLevelDebugPkg.dsc -t CLANGDWARF -a X64 -b RELEASE
 ```
 
-此时我们的 UEFI 程序编译完成以后，便会看到两个文件，`.debug`后缀的便是带有 DWARF 格式调试信息的文件。
+此时我们的 UEFI 程序编译完成以后，便会看到两个文件，`.debug` 后缀的便是带有 DWARF 格式调试信息的文件。
 
 ## GDB
 
