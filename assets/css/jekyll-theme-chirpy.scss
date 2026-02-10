@@ -1,0 +1,15 @@
+---
+---
+
+/* prettier-ignore */
+@use 'main
+{%- if jekyll.environment == 'production' -%}
+  .bundle
+{%- endif -%}
+';
+
+/* append your custom style below */
+
+body {
+  font-family: 'Source Sans Pro', 'Noto Sans SC', 'Microsoft Yahei', sans-serif;
+}
