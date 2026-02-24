@@ -1,6 +1,6 @@
 ---
 title: 浅谈 | Intel FRED
-date: 2024-02-02
+date: 2026-02-24
 categories:
   - "Intel"
 tags:
