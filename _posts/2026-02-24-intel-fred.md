@@ -19,19 +19,27 @@ image:
 
 <!-- markdownlint-capture -->
 <!-- markdownlint-disable -->
-> 在阅读本篇内容前，需要读者对 x64 架构有一定的了解。
+
+> FRED 仅适用于 64 位操作系统（IA-32e Mode），在阅读本篇内容前，需要读者对 x64 架构有一定的了解。
 {: .prompt-tip }
 <!-- markdownlint-restore -->
 
-## 配置
+## 枚举
 
 | 功能     | 支持                                      | 描述                   |
 | -------- | ----------------------------------------- | ---------------------- |
 | **FRED** | CPUID.(EAX=07H, ECX=1H):EAX.FRED [Bit 17] | 支持 FRED 指令和寄存器 |
 | **LKGS** | CPUID.(EAX=07H, ECX=1H):EAX.LKGS [Bit 18] | 支持 LKGS 指令         |
 
-<!-- markdownlint-capture -->
-<!-- markdownlint-disable -->
-> FRED 仅适用于 64 位 OS（IA-32e 模式）。
-{: .prompt-tip }
-<!-- markdownlint-restore -->
+在高版本 Windows 中，初始化内核阶段会调用到 `KiInitializeBootStructures`， 这个函数内部首先会调用 `KiSetProcessorSignature`，内部会调用到`RtlDetectProcessorFeatures`，这个函数会根据 `KiCpuFeatureTable` 来枚举支持的功能，通过 AI 可以轻松的分析出结构体的大致用途：
+
+![](../assets/img/2026-02-24-intel-fred/1.png)
+
+------
+
+```
+KI_CPU_FEATURE_ENTRY <7, 1, 20000h, 0, 14h, 0, 4000000000h, 0> [FRED]
+KI_CPU_FEATURE_ENTRY <7, 1, 40000h, 0, 14h, 0, 8000000000h, 0> [LKGS]
+```
+
+我们可以直接从表中找到这两项，只有当 CPU 同时支持这两个功能的时候，`KiFredEnabled` 才会被设置。
