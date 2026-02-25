@@ -34,7 +34,7 @@ image:
 <!-- markdownlint-capture -->
 <!-- markdownlint-disable -->
 
-> 虽然这是两个相关但彼此独立的功能，但任何支持 **FRED** 的处理器都将支持 **LKGS**。
+> 这是两个相关但彼此独立的功能，任何支持 **FRED** 的处理器都将支持 **LKGS**。
 {: .prompt-tip }
 <!-- markdownlint-restore -->
 
@@ -52,7 +52,7 @@ KI_CPU_FEATURE_ENTRY <7, 1, 20000h, 0, 14h, 0, 4000000000h, 0> [FRED]
 KI_CPU_FEATURE_ENTRY <7, 1, 40000h, 0, 14h, 0, 8000000000h, 0> [LKGS]
 ```
 
-其中 **FRED** 在 `KeFeatureBits2` 中对应的掩码是 `4000000000h`，**LKGS** 对应的则是 `8000000000h`，当 `KiInitializeBootStructures` 检测到处理器同时支持这两个功能的时候，会将全局变量 `KiTrapFeatures` 位或 `2`，同时会将 `KiFredEnabled` 设置为 `1`。
+其中 **FRED** 在 `KeFeatureBits2` 中对应的掩码是 `4000000000h`，**LKGS** 对应的则是 `8000000000h`，当系统检测到处理器同时支持这两个功能的时候，会将全局变量 `KiTrapFeatures` 位或 `2`，同时会将 `KiFredEnabled` 设置为 `1`。
 
 ## 启用
 
@@ -67,33 +67,32 @@ KI_CPU_FEATURE_ENTRY <7, 1, 40000h, 0, 14h, 0, 8000000000h, 0> [LKGS]
 
 ## 配置
 
-| FRED MSR          | 地址        | 功能                     |
-| ----------------- | ----------- | ------------------------ |
-| IA32_FRED_CONFIG  | 1D4H        | 配置 FRED 的功能         |
-| IA32_FRED_STKLVLS | 1D0H        | 异常向量各自的最低栈级别 |
-| IA32_FRED_RSPn    | 1CCH - 1CFH | 各栈级别对应的 RSP       |
-| IA32_FRED_SSPn    | 1D1H - 1D3H | 各栈级别对应的 SSP       |
+| FRED MSR          | 地址        | 功能                         |
+| ----------------- | ----------- | ---------------------------- |
+| IA32_FRED_CONFIG  | 1D4H        | 配置 FRED 的功能             |
+| IA32_FRED_STKLVLS | 1D0H        | 异常向量各自的最低栈级别     |
+| IA32_FRED_RSPn    | 1CCH - 1CFH | n= 0 - 3，各栈级别对应的 RSP |
+| IA32_FRED_SSPn    | 1D1H - 1D3H | n= 1 - 3，各栈级别对应的 SSP |
+| IA32_FRED_SSP0    | 6A4H        | 复用曾经的 IA32_PL0_SSP      |
 
 - **IA32_FRED_CONFIG**：
-
-  - **Bits 1:0** 是当前栈级别（CSL）。
-
-  - **Bit 3** 设置以后，如果事件传递不更改堆栈，则应将影子堆栈指针 (SSP) 递减 8。
-
-  - **Bits 8:6** 是不换栈时 RSP 递减量。
-
-  - **Bits 10:9** 是 CPL=0 时可屏蔽中断的栈级别。
-
-  - **Bits 63:12** 事件处理入口 RIP（4K对齐）。
-
+  - **Bits 1:0**：当前栈级别（CSL）。
+  
+  - **Bit 3**：设置以后，如果事件传递不更改堆栈，则应将影子堆栈指针 (SSP) 递减 8。
+  
+  - **Bits 8:6**：是不换栈时 RSP 递减量。
+  
+  - **Bits 10:9**：是 CPL=0 时可屏蔽中断的栈级别。
+  
+  - **Bits 63:12**：事件处理入口 RIP（4K对齐）。
+  
 - **IA32_FRED_STKLVLS**：
-
   - 代表的是 32 个异常向量在 CPL=0 时使用的栈级别，每个向量占 2 位。
-
+  
 - **IA32_FRED_RSPn**：
 
   - 代表的是每个栈级别对应的 RSP。
 
 - **IA32_FRED_SSPn**：
+- 代表的是每个栈级别对应的 SSP。
 
-  - 代表的是每个栈级别对应的 SSP。
