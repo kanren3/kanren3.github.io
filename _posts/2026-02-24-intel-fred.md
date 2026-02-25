@@ -52,7 +52,7 @@ KI_CPU_FEATURE_ENTRY <7, 1, 20000h, 0, 14h, 0, 4000000000h, 0> [FRED]
 KI_CPU_FEATURE_ENTRY <7, 1, 40000h, 0, 14h, 0, 8000000000h, 0> [LKGS]
 ```
 
-其中 **FRED** 在 `KeFeatureBits2` 中对应的掩码是 `4000000000h`，**LKGS** 对应的则是 `8000000000h`，当系统检测到处理器同时支持这两个功能的时候，会将全局变量 `KiTrapFeatures` 位或 `2`，同时会将 `KiFredEnabled` 设置为 `1`。
+其中 **FRED** 在 `KeFeatureBits2` 中对应的掩码是 `4000000000h`，**LKGS** 对应的是 `8000000000h`，当系统检测到处理器同时支持这两个功能的时候，会将全局变量 `KiTrapFeatures` 位或 `2`，同时会将 `KiFredEnabled` 设置为 `1`。
 
 ## 启用
 
