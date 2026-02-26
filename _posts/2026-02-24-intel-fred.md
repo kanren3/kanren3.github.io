@@ -15,7 +15,7 @@ image:
 
 ## 概述
 
-**FRED（Flexible Return and Event Delivery）** 是 Intel 引入的新型特权级切换与事件处理架构，用于替代传统的 IDT 事件投递（IDT event delivery）和 IRET 返回机制，同时 AMD 也宣布在即将到来的 Zen6 中采用，而微软已经在高版本的 Windows 内核中实现了部分 FRED 的代码，所以我认为有必要借此来简单的介绍一下。
+**FRED（Flexible Return and Event Delivery）** 是 Intel 引入的新型特权级切换与事件处理架构，用于替代传统的 IDT 事件投递（IDT event delivery）和 IRET 返回机制，同时 AMD 也宣布在即将到来的 Zen6 中采用此功能，所以我认为有必要借此来简单的介绍一下。
 
 <!-- markdownlint-capture -->
 <!-- markdownlint-disable -->
@@ -34,34 +34,20 @@ image:
 <!-- markdownlint-capture -->
 <!-- markdownlint-disable -->
 
-> 这是两个相关但彼此独立的功能，任何支持 **FRED** 的处理器都将支持 **LKGS**。
+> 这是两个独立的功能，任何支持 FRED 的处理器都将支持 LKGS。
 {: .prompt-tip }
 <!-- markdownlint-restore -->
 
-在高版本 Windows 中，系统会在初始化内核之前调用 `RtlDetectProcessorFeatures` 枚举支持的功能，调用路径如下：
-
-- KiSystemStartup
-  - KiInitializeBootStructures
-    - KiSetProcessorSignature
-      - RtlDetectProcessorFeatures
-
-`RtlDetectProcessorFeatures` 内部会根据 `KiCpuFeatureTable` 来枚举支持的功能，然后将结果 `FeatureBits` 和 `FeatureBits2` 分别存放到 `Prcb->FeatureBits` 和全局变量 `KeFeatureBits2`，我们可以在表项中找到以下两项：
-
-```
-KI_CPU_FEATURE_ENTRY <7, 1, 20000h, 0, 14h, 0, 4000000000h, 0> [FRED]
-KI_CPU_FEATURE_ENTRY <7, 1, 40000h, 0, 14h, 0, 8000000000h, 0> [LKGS]
-```
-
-**FRED** 在 `KeFeatureBits2` 中对应的掩码是 `4000000000h`，**LKGS** 对应的是 `8000000000h`，系统检测到处理器同时支持这两个功能的时候，会将全局变量 `KiTrapFeatures` 位或 `2`，同时会将 `KiFredEnabled` 设置为 `1`。
-
 ## 启用
 
-操作系统可以通过设置 **CR4.FRED[bit 32]** 来启用这个 **FRED**，它的值并不会影响 **LKGS** 指令，以及 **RDMSR** 和 **WRMSR** 对于 **FRED MSR** 的访问。
+操作系统可以通过设置 **CR4.FRED[bit 32]** 来启用 FRED，启用后，传统 **IDT**、**SYSCALL**、**SYSENTER** 事件，都将统一转换成 **FRED** 事件。
+
+> 开启与否，并不会影响 **LKGS** 指令，也不会影响 **RDMSR** 和 **WRMSR** 对于 **FRED MSR** 的访问。
 
 <!-- markdownlint-capture -->
 <!-- markdownlint-disable -->
 
-> FRED 仅适用于 64 位操作系统（IA32_EFER.LMA =1）。
+> FRED 仅适用于 64 位操作系统（IA-32e 模式），而 AMD 在设计之初取消了 IA-32e 模式下的 SYSENTER 指令，所以猜测未来 FRED 事件中也不会存在 SYSENTER。
 {: .prompt-tip }
 <!-- markdownlint-restore -->
 
@@ -95,3 +81,11 @@ KI_CPU_FEATURE_ENTRY <7, 1, 40000h, 0, 14h, 0, 8000000000h, 0> [LKGS]
 - **IA32_FRED_SSPn**：
   - 代表的是每个栈级别对应的 SSP。
 
+------
+
+FRED 统一了所有事件的入口，并将它们分为两个，分别来处理用户态事件与内核态事件，并通过不同的指令来返回：
+
+| 入口地址                         | 来源    | 描述                     |
+| -------------------------------- | ------- | ------------------------ |
+| IA32_FRED_CONFIG & ~FFFH         | CPL = 3 | 使用 ERETU（返回用户态） |
+| (IA32_FRED_CONFIG & ~FFFH) + 256 | CPL = 0 | 使用 ERETS（返回内核态） |
