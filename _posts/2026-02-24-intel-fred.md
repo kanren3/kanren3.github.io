@@ -90,14 +90,25 @@ FRED 统一了所有事件的入口，并将它们分为两个，分别来处理
 | IA32_FRED_CONFIG & ~FFFH         | CPL = 3 | 使用 ERETU（返回用户态） |
 | (IA32_FRED_CONFIG & ~FFFH) + 256 | CPL = 0 | 使用 ERETS（返回内核态） |
 
-## 交付
+## 栈切换
 
-当产生 FRED 事件时，会根据事件类型和 CPL 来确定 **eventSL**：
+传统 **IDT** 的栈切换是依赖于 **TSS** 的，当中断或异常发生时，会根据以下因素决定是否进行栈切换：
 
-| 场景                                             | eventSL                    |
-| ------------------------------------------------ | -------------------------- |
-| CPL = 3，既不是嵌套异常，也不是双重异常          | 0                          |
-| CPL = 3，是嵌套异常，或是双重异常                | IA32_FRED_STKLVLS[2v+1:2v] |
-| CPL = 0，异常（包括 INT1, INT3, INTO 指令）/ NMI | IA32_FRED_STKLVLS[2v+1:2v] |
-| CPL = 0，可屏蔽中断                              | IA32_FRED_CONFIG[10:9]     |
-| CPL = 0，INT n / SYSCALL / SYSENTER              | 0                          |
+- 如果中断异常向量对应的 **IDT Entry** 的 **IST** 非零，则会无条件将 **RSP** 切换至 **TSS** 中 **IST** 字段对应的值。
+- 否则就检查是否产生权限跃迁，如果产生了权限跃迁，则会将 **RSP** 切换至 **TSS** 中 **RSP** 字段对应的值。
+- 否则不会进行栈切换。
+
+而当开启 FRED 以后，栈切换方式会随之改变，并诞生 **栈级别** 这个概念，FRED 事件发生时，首先会根据根据事件类型和 CPL 来进行 **eventSL** 确定：
+
+| 场景                                    | eventSL                    |
+| --------------------------------------- | -------------------------- |
+| CPL = 3，既不是嵌套异常，也不是双重异常 | 0                          |
+| CPL = 3，是嵌套异常，或是双重异常       | IA32_FRED_STKLVLS[2v+1:2v] |
+| CPL = 0，异常 / NMI                     | IA32_FRED_STKLVLS[2v+1:2v] |
+| CPL = 0，外部中断                       | IA32_FRED_CONFIG[10:9]     |
+| CPL = 0，INT n / SYSCALL / SYSENTER     | 0                          |
+
+随后通过 `newCSL = MAX(oldCSL, eventSL)` 选出 **newCSL**，然后进行根据以下因素决定是否进行栈切换：
+
+- 如果事件发生在 **CPL = 3**，或 **CSL** 产生了变化，则将 **RSP** 切换为对应的 **IA32_FRED_RSP**，如果当前启用了 **Shadow Stack**，则同时将 **SSP** 切换为对应的 **IA32_FRED_SSP**，事件发生在 **CPL = 3**，还会自动交换 **GS.base** 的 **IA32_KERNEL_GS_BASE**，避免了事件处理程序手动调用 **SWAPGS** 指令。
+- 否则不进行栈切换，但是会根据 **IA32_FRED_CONFIG** 来递减 **RSP** 和 **SSP**。
