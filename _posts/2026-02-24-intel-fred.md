@@ -15,7 +15,7 @@ image:
 
 ## 概述
 
-**FRED（Flexible Return and Event Delivery）** 是 Intel 引入的新型特权级切换与事件处理架构，用于替代传统的 IDT 事件投递（IDT event delivery）和 IRET 返回机制，同时 AMD 也宣布在即将到来的 Zen6 中采用此功能，所以我认为有必要借此来简单的介绍一下。
+**FRED（Flexible Return and Event Delivery）** 是 Intel 引入的新型特权级切换与事件处理架构，用于替代传统的 IDT 事件交付（IDT event delivery）和 IRET 返回机制，同时 AMD 也宣布在即将到来的 Zen6 中采用此功能，所以我认为有必要借此来简单的介绍一下。
 
 <!-- markdownlint-capture -->
 <!-- markdownlint-disable -->
@@ -68,12 +68,12 @@ image:
   
   - **Bits 8:6**：是不换栈时 RSP 递减量。
   
-  - **Bits 10:9**：是 CPL=0 时可屏蔽中断的栈级别。
+  - **Bits 10:9**：是 CPL = 0 时可屏蔽中断的栈级别。
   
   - **Bits 63:12**：事件处理入口 RIP（4K对齐）。
   
 - **IA32_FRED_STKLVLS**：
-  - 代表的是 32 个异常向量在 CPL=0 时使用的栈级别，每个向量占 2 位。
+  - 代表的是 32 个异常向量在 CPL = 0 时使用的栈级别，每个向量占 2 位。
   
 - **IA32_FRED_RSPn**：
   - 代表的是每个栈级别对应的 RSP。
@@ -83,9 +83,21 @@ image:
 
 ------
 
-FRED 统一了所有事件的入口，并将它们分为两个，分别来处理用户态事件与内核态事件，并通过不同的指令来返回：
+FRED 统一了所有事件的入口，并将它们分为两个，分别来处理用户态事件与内核态事件：
 
 | 入口地址                         | 来源    | 描述                     |
 | -------------------------------- | ------- | ------------------------ |
 | IA32_FRED_CONFIG & ~FFFH         | CPL = 3 | 使用 ERETU（返回用户态） |
 | (IA32_FRED_CONFIG & ~FFFH) + 256 | CPL = 0 | 使用 ERETS（返回内核态） |
+
+## 交付
+
+当产生 FRED 事件时，会根据事件类型和 CPL 来确定 **eventSL**：
+
+| 场景                                             | eventSL                    |
+| ------------------------------------------------ | -------------------------- |
+| CPL = 3，既不是嵌套异常，也不是双重异常          | 0                          |
+| CPL = 3，是嵌套异常，或是双重异常                | IA32_FRED_STKLVLS[2v+1:2v] |
+| CPL = 0，异常（包括 INT1, INT3, INTO 指令）/ NMI | IA32_FRED_STKLVLS[2v+1:2v] |
+| CPL = 0，可屏蔽中断                              | IA32_FRED_CONFIG[10:9]     |
+| CPL = 0，INT n / SYSCALL / SYSENTER              | 0                          |
