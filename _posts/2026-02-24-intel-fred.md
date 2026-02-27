@@ -130,7 +130,7 @@ IA32_KERNEL_GS_BASE := oldGSB;
 传统 **IDT** 的栈切换是依赖于 **TSS** 的，当中断或异常发生时，会根据以下因素决定是否进行栈切换：
 
 - 如果中断 / 异常向量对应的 **IDT Entry** 的 **IST** 非零，则会无条件将 **RSP** 切换为 **TSS** 中 **IST** 字段对应的值。
-- 否则，检查是否存在权限跃迁，如果存在权限跃迁，就将 **RSP** 切换为 **TSS** 中 **RSP** 字段对应的值。
+- 否则，如果存在权限跃迁，就将 **RSP** 切换为 **TSS** 中 **RSP** 字段对应的值。
 - 否则，不会进行栈切换。
 
 而当开启 **FRED** 以后，栈切换方式会随之改变，并引入 **栈级别** 这个概念，FRED 事件发生时，首先会根据事件类型和 CPL 来确定 **eventSL**：
@@ -146,5 +146,4 @@ IA32_KERNEL_GS_BASE := oldGSB;
 随后将 **CSL** 设置为 **MAX(CSL, eventSL)**，并根据以下因素决定是否进行栈切换：
 
 - 如果事件发生在 **CPL = 3**，或 **CSL** 产生了变化，则将 **RSP** 切换为对应的 **IA32_FRED_RSP**，如果当前启用了 **KCET**，则同时将 **SSP** 切换为对应的 **IA32_FRED_SSP**。
-- 否则，不进行栈切换，但是会根据 **IA32_FRED_CONFIG** 的配置来递减 **RSP** 和 **SSP**，为 **Red Zone** 预留空间。
-
+- 否则，不进行栈切换，但是会根据 **IA32_FRED_CONFIG** 的配置来递减 **RSP** 和 **SSP**，手册并未提及字段的用途，猜测是在为 [Red Zone](https://en.wikipedia.org/wiki/Red_zone_(computing)) 预留空间。
