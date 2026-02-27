@@ -85,36 +85,7 @@ image:
 
 首先，如果事件发生在 **CPL = 3**，则根据 **IA32_STAR [47:32]** 设置新的 **CS** 和 **SS**，然后交换 **GS.Base** 和 **IA32_KERNEL_GS_BASE**：
 
-```
-// set CS to standard values used by a 64-bit operating system
-CS.selector := IA32_STAR[47:32] & FFFCH;
-CS.base := 0;
-CS.limit := FFFFFH;
-CS.type := 11;
-CS.S := 1;
-CS.DPL := 0;
-CS.P := 1;
-CS.L := 1;
-CS.D := 0;
-CS.G := 1;
-CS.unusable := 0;
-
-// set SS to standard values used by a 64-bit operating system
-SS.selector := CS.selector + 8;
-SS.base := 0;
-SS.limit := FFFFFH;
-SS.type := 3;
-SS.S := 1;
-SS.DPL := 0;
-SS.P := 1;
-SS.B := 1;
-SS.G := 1;
-SS.unusable := 0;
-
-// swap in supervisor GS base address
-GS.base := IA32_KERNEL_GS_BASE;
-IA32_KERNEL_GS_BASE := oldGSB;
-```
+![](../assets/img/2026-02-24-intel-fred/1.png)
 
 下一步为设置新的 **RIP**：
 
