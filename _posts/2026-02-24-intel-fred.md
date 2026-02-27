@@ -15,7 +15,7 @@ image:
 
 ## 概述
 
-**FRED（Flexible Return and Event Delivery）** 是 Intel 引入的新型特权级切换与事件处理架构，用于替代传统的 IDT 事件交付（IDT event delivery）和 IRET 返回机制，同时 AMD 也宣布在即将到来的 Zen6 中采用此功能，所以我认为有必要借此来简单的介绍一下。
+**FRED（Flexible Return and Event Delivery）** 是 Intel 引入的新型特权级切换与事件处理架构，用于替代传统的 IDT 事件交付（IDT event delivery）和 IRET 返回机制，同时 AMD 也宣布在即将到来的 Zen6 中采用此功能，所以我认为有必要借此来简单介绍一下。
 
 <!-- markdownlint-capture -->
 <!-- markdownlint-disable -->
@@ -68,7 +68,7 @@ image:
   
   - **Bits 8:6**：不进行栈切换时 **RSP** 的递减量。
   
-  - **Bits 10:9**：是 **CPL = 0** 时可屏蔽中断的栈级别。
+  - **Bits 10:9**：**CPL = 0** 时可屏蔽中断的栈级别。
   
   - **Bits 63:12**：事件处理入口，要求 **4K** 对齐。
   
@@ -96,7 +96,7 @@ image:
 - 否则，检查是否存在权限跃迁，如果存在权限跃迁，就将 **RSP** 切换为 **TSS** 中 **RSP** 字段对应的值。
 - 否则，不会进行栈切换。
 
-而当开启 FRED 以后，栈切换方式会随之改变，并诞生 **栈级别** 这个概念，FRED 事件发生时，首先会根据根据事件类型和 CPL 来进行 **eventSL** 确定：
+而当开启 FRED 以后，栈切换方式会随之改变，并诞生 **栈级别** 这个概念，FRED 事件发生时，首先会根据事件类型和 CPL 来确定 **eventSL**：
 
 | 场景                                    | eventSL                    |
 | --------------------------------------- | -------------------------- |
@@ -110,5 +110,5 @@ image:
 
 - 如果事件发生在 **CPL = 3**，或 **CSL** 产生了变化，则将 **RSP** 切换为对应的 **IA32_FRED_RSP**。
   - 如果当前启用了 **Shadow Stack**，则同时将 **SSP** 切换为对应的 **IA32_FRED_SSP**。
-  - 如果事件发生在 **CPL = 3**，会自动交换 **GS.Base** 的 **IA32_KERNEL_GS_BASE**。
+  - 如果事件发生在 **CPL = 3**，会自动交换 **GS.Base** 和 **IA32_KERNEL_GS_BASE**。
 - 否则，不进行栈切换，但是会根据 **IA32_FRED_CONFIG** 来递减 **RSP** 和 **SSP**。
