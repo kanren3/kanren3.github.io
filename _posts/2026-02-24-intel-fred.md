@@ -53,13 +53,13 @@ image:
 
 ## 配置
 
-| FRED MSR          | 地址        | 功能                         |
-| ----------------- | ----------- | ---------------------------- |
-| IA32_FRED_CONFIG  | 1D4H        | 配置 FRED 的功能             |
-| IA32_FRED_STKLVLS | 1D0H        | 异常向量各自的最低栈级别     |
-| IA32_FRED_RSPn    | 1CCH - 1CFH | n= 0 - 3，各栈级别对应的 RSP |
-| IA32_FRED_SSPn    | 1D1H - 1D3H | n= 1 - 3，各栈级别对应的 SSP |
-| IA32_FRED_SSP0    | 6A4H        | 复用曾经的 IA32_PL0_SSP      |
+| FRED MSR          | 地址        | 功能                              |
+| ----------------- | ----------- | --------------------------------- |
+| IA32_FRED_CONFIG  | 1D4H        | 配置 FRED 的功能                  |
+| IA32_FRED_STKLVLS | 1D0H        | 异常向量各自的最低栈级别          |
+| IA32_FRED_RSPn    | 1CCH - 1CFH | n= 0 - 3，各栈级别对应的 RSP      |
+| IA32_FRED_SSPn    | 1D1H - 1D3H | n= 1 - 3，各栈级别对应的 SSP      |
+| IA32_FRED_SSP0    | 6A4H        | 复用了原本 CET.SS 的 IA32_PL0_SSP |
 
 - **IA32_FRED_CONFIG**：
   - **Bits 1:0**：当前栈级别（**CSL**）。
@@ -81,22 +81,59 @@ image:
 - **IA32_FRED_SSPn**：
   - 代表的是每个栈级别对应的 **SSP**。
 
-其中值得一提的是 **IA32_FRED_SSP0** 复用了原本 **CET.SS** 的 **IA32_PL0_SSP**，而 **IA32_FRED_CONFIG** 的 **Bits 63:12** 则是统一了所有事件的入口，并将它们分为两个，分别来处理用户态事件与内核态事件：
+## 交付
 
-| 入口地址                         | 来源    | 描述                     |
-| -------------------------------- | ------- | ------------------------ |
-| IA32_FRED_CONFIG & ~FFFH         | CPL = 3 | 使用 ERETU（返回用户态） |
-| (IA32_FRED_CONFIG & ~FFFH) + 256 | CPL = 0 | 使用 ERETS（返回内核态） |
+首先，如果事件发生在 **CPL = 3**，则根据 **IA32_STAR [47:32]** 设置新的 **CS** 和 **SS**，然后交换 **GS.Base** 和 **IA32_KERNEL_GS_BASE**：
 
-## 栈切换
+```
+// set CS to standard values used by a 64-bit operating system
+CS.selector := IA32_STAR[47:32] & FFFCH;
+CS.base := 0;
+CS.limit := FFFFFH;
+CS.type := 11;
+CS.S := 1;
+CS.DPL := 0;
+CS.P := 1;
+CS.L := 1;
+CS.D := 0;
+CS.G := 1;
+CS.unusable := 0;
+
+// set SS to standard values used by a 64-bit operating system
+SS.selector := CS.selector + 8;
+SS.base := 0;
+SS.limit := FFFFFH;
+SS.type := 3;
+SS.S := 1;
+SS.DPL := 0;
+SS.P := 1;
+SS.B := 1;
+SS.G := 1;
+SS.unusable := 0;
+
+// swap in supervisor GS base address
+GS.base := IA32_KERNEL_GS_BASE;
+IA32_KERNEL_GS_BASE := oldGSB;
+```
+
+下一步为设置新的 **RIP**：
+
+| RIP                              | 来源    | 描述                         |
+| -------------------------------- | ------- | ---------------------------- |
+| IA32_FRED_CONFIG & ~FFFH         | CPL = 3 | 使用 **ERETU**（返回用户态） |
+| (IA32_FRED_CONFIG & ~FFFH) + 256 | CPL = 0 | 使用 **ERETS**（返回内核态） |
+
+然后将 **RFLAGS** 设置为 **2**，随后设置 **RSP**、**SSP**、**CSL** 进行栈切换。
+
+------
 
 传统 **IDT** 的栈切换是依赖于 **TSS** 的，当中断或异常发生时，会根据以下因素决定是否进行栈切换：
 
-- 如果中断异常向量对应的 **IDT Entry** 的 **IST** 非零，则会无条件将 **RSP** 切换为 **TSS** 中 **IST** 字段对应的值。
+- 如果中断 / 异常向量对应的 **IDT Entry** 的 **IST** 非零，则会无条件将 **RSP** 切换为 **TSS** 中 **IST** 字段对应的值。
 - 否则，检查是否存在权限跃迁，如果存在权限跃迁，就将 **RSP** 切换为 **TSS** 中 **RSP** 字段对应的值。
 - 否则，不会进行栈切换。
 
-而当开启 FRED 以后，栈切换方式会随之改变，并诞生 **栈级别** 这个概念，FRED 事件发生时，首先会根据事件类型和 CPL 来确定 **eventSL**：
+而当开启 **FRED** 以后，栈切换方式会随之改变，并引入 **栈级别** 这个概念，FRED 事件发生时，首先会根据事件类型和 CPL 来确定 **eventSL**：
 
 | 场景                                    | eventSL                    |
 | --------------------------------------- | -------------------------- |
@@ -106,9 +143,8 @@ image:
 | CPL = 0，外部中断                       | IA32_FRED_CONFIG[10:9]     |
 | CPL = 0，INT n / SYSCALL / SYSENTER     | 0                          |
 
-随后参照 **MAX(CSL, eventSL)** 选出 **newCSL**，并根据以下因素决定是否进行栈切换：
+随后将 **CSL** 设置为 **MAX(CSL, eventSL)**，并根据以下因素决定是否进行栈切换：
 
-- 如果事件发生在 **CPL = 3**，或 **CSL** 产生了变化，则将 **RSP** 切换为对应的 **IA32_FRED_RSP**。
-  - 如果当前启用了 **Shadow Stack**，则同时将 **SSP** 切换为对应的 **IA32_FRED_SSP**。
-  - 如果事件发生在 **CPL = 3**，会自动交换 **GS.Base** 和 **IA32_KERNEL_GS_BASE**。
-- 否则，不进行栈切换，但是会根据 **IA32_FRED_CONFIG** 来递减 **RSP** 和 **SSP**。
+- 如果事件发生在 **CPL = 3**，或 **CSL** 产生了变化，则将 **RSP** 切换为对应的 **IA32_FRED_RSP**，如果当前启用了 **KCET**，则同时将 **SSP** 切换为对应的 **IA32_FRED_SSP**。
+- 否则，不进行栈切换，但是会根据 **IA32_FRED_CONFIG** 的配置来递减 **RSP** 和 **SSP**，为 **Red Zone** 预留空间。
+
