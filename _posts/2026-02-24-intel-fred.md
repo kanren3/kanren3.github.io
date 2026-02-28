@@ -40,7 +40,7 @@ image:
 
 ## 启用
 
-操作系统可以通过设置 **CR4.FRED[bit 32]** 来启用 FRED，启用后，传统 **IDT**、**SYSCALL**、**SYSENTER** 事件，都将统一转换成 **FRED** 事件。
+操作系统可以通过设置 **CR4.FRED[bit 32]** 来启用 FRED，启用后，传统 **IDT**，**SYSCALL**，**SYSENTER** 事件，都将统一转换成 FRED 事件。
 
 > 开启与否，并不会影响 **LKGS** 指令，也不会影响 **RDMSR** 和 **WRMSR** 对于 **FRED MSR** 的访问。
 
@@ -59,7 +59,7 @@ image:
 | IA32_FRED_STKLVLS | 1D0H        | 异常向量各自的最低栈级别          |
 | IA32_FRED_RSPn    | 1CCH - 1CFH | n= 0 - 3，各栈级别对应的 RSP      |
 | IA32_FRED_SSPn    | 1D1H - 1D3H | n= 1 - 3，各栈级别对应的 SSP      |
-| IA32_FRED_SSP0    | 6A4H        | 复用了原本 CET.SS 的 IA32_PL0_SSP |
+| IA32_FRED_SSP0    | 6A4H        | 复用了原本 KCET.SS 的 IA32_PL0_SSP |
 
 - **IA32_FRED_CONFIG**：
   - **Bits 1:0**：当前栈级别（**CSL**）。
@@ -94,7 +94,8 @@ image:
 | IA32_FRED_CONFIG & ~FFFH         | CPL = 3 | 使用 **ERETU**（返回用户态） |
 | (IA32_FRED_CONFIG & ~FFFH) + 256 | CPL = 0 | 使用 **ERETS**（返回内核态） |
 
-然后将 **RFLAGS** 设置为 **2**，随后设置 **RSP**、**SSP**、**CSL** 进行栈切换。
+若 **RIP** 不符合分页标准，则先后尝试通过 **#GP**，**#DF** 产生 **VM Exit**，如果都没能产生 **VM Exit** 则会产生 **Triple fault**。
+设置好 **RIP** 以后，会将 **RFLAGS** 设置为 **2**，随后设置 **RSP**，**SSP**，**CSL** 进行栈切换。
 
 ------
 
@@ -104,7 +105,7 @@ image:
 - 否则，如果存在权限跃迁，就将 **RSP** 切换为 **TSS** 中 **RSP** 字段对应的值。
 - 否则，不会进行栈切换。
 
-而当开启 **FRED** 以后，栈切换方式会随之改变，并引入 **栈级别** 这个概念，FRED 事件发生时，首先会根据事件类型和 CPL 来确定 **eventSL**：
+而当开启 FRED 以后，栈切换方式会随之改变，并引入 **栈级别** 这个概念，FRED 事件发生时，首先会根据事件类型和 CPL 来确定 **eventSL**：
 
 | 场景                                    | eventSL                    |
 | --------------------------------------- | -------------------------- |
@@ -117,4 +118,13 @@ image:
 随后将 **CSL** 设置为 **MAX(CSL, eventSL)**，并根据以下因素决定是否进行栈切换：
 
 - 如果事件发生在 **CPL = 3**，或 **CSL** 产生了变化，则将 **RSP** 切换为对应的 **IA32_FRED_RSP**，如果当前启用了 **KCET**，则同时将 **SSP** 切换为对应的 **IA32_FRED_SSP**。
-- 否则，不进行栈切换，但是会根据 **IA32_FRED_CONFIG** 中用于控制 **RSP** 递减的位 **[8:6]** 和用于控制 **SSP** 递减的位 **[3]** 的配置来递减 **RSP** 和 **SSP**。手册并未提及这些字段的具体用途，猜测是在为 [Red Zone](https://en.wikipedia.org/wiki/Red_zone_(computing)) 预留空间。
+- 否则，不进行栈切换，但会根据 **IA32_FRED_CONFIG** 中的 **[8:6]** 和 **[3]** 的配置来递减 **RSP** 和 **SSP**。手册并未提及这些字段的具体用途，猜测是在为 [Red Zone](https://en.wikipedia.org/wiki/Red_zone_(computing)) 预留空间。
+
+## 变动
+
+启用 FRED 后，某些指令的行为则会发生变动，以下指令会被禁用，执行这些指令会产生 **#UD** 异常：
+- **CLRSSBSY, SETSSBSY**：启用 FRED 后，**supervisor shadow-stack tokens** 就不存在了，这两条指令也就没用了。
+- **SYSEXIT, SYSRET**：启用 FRED 后，**SYSENTRY** 和 **SYSCALL** 事件也会使用 **ERETU** 和 **ERETS** 处理。
+- **SWAPGS**：处理 FRED 事件的过程中，如果 **CPL** 产生变化，处理器会自动切换 **GS.Base**。
+
+并且调用门也随着 **IDT** 一起被废除，FRED 转换将成为唯一可以修改 **CPL** 的方式，当 **far CALL**，**far JMP**，**far RET**，**IRET** 试图修改 **CPL** 的时候，将产生 **#GP** 异常。
