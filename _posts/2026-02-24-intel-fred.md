@@ -124,7 +124,7 @@ image:
 
 启用 FRED 后，某些指令的行为则会发生变动，以下指令会被禁用，执行这些指令会产生 **#UD** 异常：
 - **CLRSSBSY, SETSSBSY**：启用 FRED 后，**supervisor shadow-stack tokens** 就不存在了，这两条指令也就没用了。
-- **SYSEXIT, SYSRET**：启用 FRED 后，**SYSENTRY** 和 **SYSCALL** 事件也会使用 **ERETU** 和 **ERETS** 处理。
+- **SYSEXIT, SYSRET**：启用 FRED 后，**SYSENTER** 和 **SYSCALL** 将转换为 FRED 事件，并使用 **ERETU** 和 **ERETS** 处理。
 - **SWAPGS**：处理 FRED 事件的过程中，如果 **CPL** 产生变化，处理器会自动切换 **GS.Base**。
 
 并且调用门也随着 **IDT** 一起被废除，FRED 转换将成为唯一可以修改 **CPL** 的方式，当 **far CALL**，**far JMP**，**far RET**，**IRET** 试图修改 **CPL** 的时候，将产生 **#GP** 异常。
