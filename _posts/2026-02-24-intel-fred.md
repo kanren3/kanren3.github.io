@@ -117,4 +117,4 @@ image:
 随后将 **CSL** 设置为 **MAX(CSL, eventSL)**，并根据以下因素决定是否进行栈切换：
 
 - 如果事件发生在 **CPL = 3**，或 **CSL** 产生了变化，则将 **RSP** 切换为对应的 **IA32_FRED_RSP**，如果当前启用了 **KCET**，则同时将 **SSP** 切换为对应的 **IA32_FRED_SSP**。
-- 否则，不进行栈切换，但是会根据 **IA32_FRED_CONFIG** 的配置来递减 **RSP** 和 **SSP**，手册并未提及字段的用途，猜测是在为 [Red Zone](https://en.wikipedia.org/wiki/Red_zone_(computing)) 预留空间。
+- 否则，不进行栈切换，但是会根据 **IA32_FRED_CONFIG** 中用于控制 **RSP** 递减的位 **[8:6]** 和用于控制 **SSP** 递减的位 **[3]** 的配置来递减 **RSP** 和 **SSP**。手册并未提及这些字段的具体用途，猜测是在为 [Red Zone](https://en.wikipedia.org/wiki/Red_zone_(computing)) 预留空间。
