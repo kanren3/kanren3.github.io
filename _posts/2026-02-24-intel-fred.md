@@ -122,7 +122,7 @@ image:
 
 ## 变动
 
-启用 FRED 后，某些指令的行为则会发生变动，以下指令会被禁用，执行这些指令会产生 **#UD** 异常：
+启用 FRED 后，某些指令的行为则会发生变动，以下指令会被禁用，尝试执行会产生 **#UD** 异常：
 - **CLRSSBSY，SETSSBSY**：这两条指令将随着 **Supervisor Shadow Stack Tokens** 一起废除。
 - **SYSEXIT，SYSRET**：改为使用 **ERETU**，**ERETS** 处理 **SYSENTER** 和 **SYSCALL**。
 - **SWAPGS**：如果 FRED 转换的过程中 **CPL** 产生变化，处理器会自动交换 **GS.Base**。
