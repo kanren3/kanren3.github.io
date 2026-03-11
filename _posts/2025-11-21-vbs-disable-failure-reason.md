@@ -17,7 +17,7 @@ image:
 
 ## 原理
 
-在探寻为何会禁用失败之前，我们需要先了解禁用的原理，也就是从 `bcdedit /set hypervisorlaunchtype off` 下手，所以我们首先需要使用 **IDA** 打开 低版本 Windows 中的 `bcdedit.exe`，搜索到关键字符串 `hypervisorlaunchtype`，然后查看引用：
+在探寻为何会禁用失败之前，我们需要先了解禁用的原理，也就是从 `bcdedit /set hypervisorlaunchtype off` 下手，所以我们首先需要使用 **IDA** 打开低版本 Windows 中的 `bcdedit.exe`，搜索到关键字符串 `hypervisorlaunchtype`，然后查看引用：
 
 ![](../assets/img/2025-11-21-vbs-disable-failure-reason/1.png)
 
@@ -35,7 +35,7 @@ image:
 
 ------
 
-通过分析函数名和函数的使用情况，最后确定是 `OslGetHypervisorLaunchType` 是决定是否加载 **MSHV** 的关键因素：
+通过分析函数名和函数的使用情况，最后确定 `OslGetHypervisorLaunchType` 是决定是否加载 **MSHV** 的关键因素：
 
 ![](../assets/img/2025-11-21-vbs-disable-failure-reason/4.png)
 
@@ -51,7 +51,7 @@ image:
 
 ## 差异
 
-那么是什么原因导致的在新版本中 `bcdedit /set hypervisorlaunchtype off` 不生效呢？我们打开新版本的 `winload.efi`，然后转到 `OslGetHypervisorLaunchType` 函数：
+那为什么在新版本中 `bcdedit /set hypervisorlaunchtype off` 不生效呢？我们打开新版本的 `winload.efi`，然后转到 `OslGetHypervisorLaunchType` 函数：
 
 ![](../assets/img/2025-11-21-vbs-disable-failure-reason/7.png)
 

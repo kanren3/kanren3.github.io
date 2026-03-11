@@ -13,7 +13,7 @@ image:
   lqip: ../assets/img/2024-01-11-uefi-source-level-debug/cover-lqip.jpg
 ---
 
-众所周知，UEFI 的调试其实是极其麻烦的事情（实际上开发过程中使用的 EDK2 工具链用起来也非常蛋疼，这里就不细说了），本篇将介绍 Windows 下使用 Vmware 进行源码级调试的方法，且其他平台下也可以同样适用。
+众所周知，UEFI 的调试其实是极其麻烦的事情（实际上开发过程中使用的 EDK2 工具链用起来也非常蛋疼，这里就不细说了），本篇将介绍 Windows 下使用 VMware 进行源码级调试的方法，且其他平台下也可以同样适用。
 
 ## 环境
 
@@ -37,11 +37,11 @@ debugStub.listen.guest64 = "TRUE"
 debugStub.hideBreakpoints= "TRUE"
 ```
 
-关闭虚拟机以后，将这两条添加到虚拟机的.vmx 文件中，然后启动虚拟机(不要 Power On to Fireware，否则.vmx 内的内容会还原)，此时调试端口便会开启在`localhost:8864` 上，不需要其他的操作。
+关闭虚拟机以后，将这两条添加到虚拟机的.vmx 文件中，然后启动虚拟机(不要 Power On to Firmware，否则.vmx 内的内容会还原)，此时调试端口 `localhost:8864` 就会开始监听，不需要其他的操作。
 
 ## EDK2
 
-在 Windows 下，比较常见的编译器是 MSVC，但是 MSVC 无法生成 DWARF 格式调试信息，所以我们需要走另一个编译器，所以我们需要将工具链从 VS2019 切换到 CLANGDWARF。
+在 Windows 下，比较常见的编译器是 MSVC，但是 MSVC 无法生成 DWARF 格式调试信息，所以我们需要走另一个编译器，需要将工具链从 VS2019 切换到 CLANGDWARF。
 
 ```
 build -p ${workspaceFolder}/SampleSourceLevelDebugPkg.dsc -t CLANGDWARF -a X64 -b NOOPT
@@ -58,9 +58,9 @@ GDB 的版本要求 10.1 以上，原因是新版 DWARF 符号，在 10.1 以下
 - target remote 127.0.0.1:8864
 - add-symbol-file (调试信息文件路径) (UEFI 程序在内存中对应的 ImageBase + .text 节偏移，一般是 0x240)
 
-此时，你使用便可以使用命令去直接反汇编函数了。
+此时，便可以直接使用命令直接反汇编函数了。
 
-- disassmble UefiMain
+- disassemble UefiMain
 
 ## Visual Studio Code
 
