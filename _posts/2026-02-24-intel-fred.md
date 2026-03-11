@@ -1,5 +1,5 @@
 ---
-title: 浅谈 | Intel FRED
+title: 探究 | Intel FRED 实现
 date: 2026-02-24
 categories:
   - "Intel"
@@ -51,7 +51,7 @@ image:
 {: .prompt-tip }
 <!-- markdownlint-restore -->
 
-## 配置
+## MSR
 
 | FRED MSR          | 地址        | 功能                              |
 | ----------------- | ----------- | --------------------------------- |
@@ -81,7 +81,7 @@ image:
 - **IA32_FRED_SSPn**：
   - 代表的是每个栈级别对应的 **SSP**。
 
-## 交付
+## 事件的交付
 
 首先，如果事件发生在 **CPL = 3**，则根据 **IA32_STAR [47:32]** 设置新的 **CS** 和 **SS**，然后交换 **GS.Base** 和 **IA32_KERNEL_GS_BASE**：
 
@@ -120,7 +120,7 @@ image:
 - 如果事件发生在 **CPL = 3**，或 **CSL** 产生了变化，则将 **RSP** 切换为对应的 **IA32_FRED_RSP**，如果当前启用了 **KCET**，则同时将 **SSP** 切换为对应的 **IA32_FRED_SSP**。
 - 否则，不进行栈切换，但会根据 **IA32_FRED_CONFIG** 中的 **[8:6]** 和 **[3]** 的配置来递减 **RSP** 和 **SSP**。手册并未提及这些字段的具体用途，猜测是在为 [Red Zone](https://en.wikipedia.org/wiki/Red_zone_(computing)) 预留空间。
 
-## 变动
+## 指令的变动
 
 启用 FRED 后，某些指令的行为则会发生变动，以下指令会被禁用，尝试执行会产生 **#UD** 异常：
 - **CLRSSBSY，SETSSBSY**：这两条指令将随着 **Supervisor Shadow Stack Tokens** 一起废除。
@@ -128,3 +128,7 @@ image:
 - **SWAPGS**：如果 FRED 转换的过程中 **CPL** 产生变化，处理器会自动交换 **GS.Base**。
 
 并且调用门也随着 **IDT** 一起被废除，FRED 转换将成为唯一可以修改 **CPL** 的方式，当 **far CALL**，**far JMP**，**far RET**，**IRET** 试图修改 **CPL** 的时候，将产生 **#GP** 异常。
+
+## 内核的实现
+
+闲下来再写。
