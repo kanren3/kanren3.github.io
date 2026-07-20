@@ -129,6 +129,46 @@ image:
 
 并且调用门也随着 **IDT** 一起被废除，FRED 转换将成为唯一可以修改 **CPL** 的方式，当 **far CALL**，**far JMP**，**far RET**，**IRET** 试图修改 **CPL** 的时候，将产生 **#GP** 异常。
 
-## 内核的实现
+## Windows FRED 配置与启用
 
-闲下来再写。
+在 `Windows 10.0.29531.1000` 版本内核中，**FRED** 的探测与启用时机，主要集中在系统初始化阶段，执行路径如下：
+
+- KiSystemStartup
+  - KiInitializeBootStructures
+    - KiSetProcessorSignature
+      - RtlDetectProcessorFeatures
+    - KiSetFeatureBits
+
+系统初始化调用 `KiInitializeBootStructures` 时，会调用 `RtlDetectProcessorFeatures` 来枚举处理器支持的能力，并将枚举的结果分别存放到 `Prcb->FeatureBits` 和全局变量 `KeFeatureBits2`，我们可以从 `KiCpuFeatureTable` 的表项中找到我们需要的两项：
+
+```
+KI_CPU_FEATURE_ENTRY <7, 1, 20000h, 0, 14h, 0, 4000000000h, 0> [FRED]
+KI_CPU_FEATURE_ENTRY <7, 1, 40000h, 0, 14h, 0, 8000000000h, 0> [LKGS]
+```
+
+**FRED** 在 `KeFeatureBits2` 中对应的掩码是 `4000000000h`，**LKGS** 对应的是 `8000000000h`，如果同时处于置位状态，是否应该启用还取决于以下三个字段：
+
+- LoaderBlock->Extension->BootDebuggerActive
+- LoaderBlock->Extension->EnableFred
+- LoaderBlock->Extension->VsmConfigured
+
+只有当 `EnableFred` 处于置位，并且 `VsmConfigured` 处于复位的时候，`KiFredEnabled` 全局变量才会被设置，具体原因稍后会讲到，，真正启用 **FRED** 的地方是在 `KiSetFeatureBits` 里，在启用前，首先会先进行配置：
+
+```c
+__writemsr(IA32_FRED_CONFIG, KiEnterUserModeEvent & 0xFFFFFFFFFFFFF834uLL | 0x40);
+__writemsr(IA32_FRED_RSP0, TssBase->Rsp0);
+__writemsr(IA32_FRED_RSP1, TssBase->Ist[3]);
+__writemsr(IA32_FRED_RSP2, TssBase->Ist[1]);
+__writemsr(IA32_FRED_STKLVLS, 0x1000020010uLL);
+```
+
+但是否启用，还需要通过 `BootDebuggerActive` 来检测系统是否存在调试器：
+
+- 当存在调试器的时候，系统会不启用 **FRED**，继续使用传统的 **IDT**。
+- 当不存在调试器的时候，则设置 **CR4.FRED[bit 32]** 启用 **FRED**，并将 **IDT** 的 **Limit** 清零。
+
+由此可见，当前版本内核的 **FRED** 实现可能并没有支持双机调试，并且在配置 **FRED** 的时候，并未配置 `IA32_FRED_SSPn`，前面提到了 `VsmConfigured` 复位的要求，`VsmConfigured` 代表系统是否存在 **SecureKernel**，而 **KCET** 是 **SecureKernel** 的功能之一，所以猜测当前的 **FRED** 实现也没有支持 **KCET**。
+
+## Windows FRED 事件的处理
+
+闲下来慢慢补。
